@@ -45,7 +45,8 @@ namespace QuantLib {
         ext::shared_ptr<EndCriteria> endCriteria,
         ext::shared_ptr<OptimizationMethod> method,
         const DayCounter& dc,
-        const Real shift)
+        const Real shift,
+        const bool useNormalVols)
     : SmileSection(optionDate, dc, Date(), ShiftedLognormal, shift), forward_(std::move(forward)),
       atmVolatility_(std::move(atmVolatility)), volHandles_(volHandles), strikes_(strikes),
       actualStrikes_(strikes), hasFloatingStrikes_(hasFloatingStrikes), vols_(volHandles.size()),
@@ -79,7 +80,8 @@ namespace QuantLib {
         ext::shared_ptr<EndCriteria> endCriteria,
         ext::shared_ptr<OptimizationMethod> method,
         const DayCounter& dc,
-        const Real shift)
+        const Real shift,
+        const bool useNormalVols)
     : SmileSection(optionDate, dc, Date(), ShiftedLognormal, shift),
       forward_(Handle<Quote>(ext::make_shared<SimpleQuote>(forward))),
       atmVolatility_(Handle<Quote>(ext::make_shared<SimpleQuote>(atmVolatility))),
@@ -88,18 +90,20 @@ namespace QuantLib {
       nu_(nu), rho_(rho), isAlphaFixed_(isAlphaFixed), isBetaFixed_(isBetaFixed),
       isNuFixed_(isNuFixed), isRhoFixed_(isRhoFixed), vegaWeighted_(vegaWeighted),
       endCriteria_(std::move(endCriteria)), method_(std::move(method)),
-      evaluationDate_(Settings::instance().evaluationDate()) {
+      evaluationDate_(Settings::instance().evaluationDate()),
+      useNormalVols_(useNormalVols) {
 
         for (Size i = 0; i < volHandles_.size(); ++i)
             volHandles_[i] = Handle<Quote>(ext::make_shared<SimpleQuote>(volHandles[i]));
     }
 
     void SabrInterpolatedSmileSection::createInterpolation() const {
-         auto tmp = ext::make_shared<SABRInterpolation>(
-             actualStrikes_.begin(), actualStrikes_.end(), vols_.begin(),
-             exerciseTime(), forwardValue_, alpha_, beta_, nu_, rho_,
-             isAlphaFixed_, isBetaFixed_, isNuFixed_, isRhoFixed_, vegaWeighted_,
-             endCriteria_, method_, 0.0020, false, 50, shift());
+         ext::shared_ptr<SABRInterpolation> tmp(new SABRInterpolation(
+                     actualStrikes_.begin(), actualStrikes_.end(), vols_.begin(),
+                     exerciseTime(), forwardValue_,
+                     alpha_, beta_, nu_, rho_,
+                     isAlphaFixed_, isBetaFixed_, isNuFixed_, isRhoFixed_, vegaWeighted_,
+                     endCriteria_, method_, 0.002, false, 50, shift_, (useNormalVols_) ? (VolatilityType::Normal) : (VolatilityType::ShiftedLognormal)));
          swap(tmp, sabrInterpolation_);
     }
 
