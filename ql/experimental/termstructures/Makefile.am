@@ -7,6 +7,8 @@ this_include_HEADERS = \
     basisswapratehelpers.hpp \
     crosscurrencyratehelpers.hpp \
     overnightindexedfundingratehelper.hpp
+    multicurvesensitivities.hpp \
+    spreadyieldtermstructure.hpp
 
 cpp_files = \
     basisswapratehelpers.cpp \
