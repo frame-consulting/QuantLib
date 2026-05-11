@@ -73,7 +73,7 @@ namespace QuantLib {
         // Real value, i.e., NPV
         // Real errorEstimate, i.e., numerical vs. analytical results
         // Date valuationDate, date until discounted
-        // std::map<std::string,boost::any> additionalResults, european reference prices
+        // std::map<std::string,ext::any> additionalResults, european reference prices
 
     };
 
