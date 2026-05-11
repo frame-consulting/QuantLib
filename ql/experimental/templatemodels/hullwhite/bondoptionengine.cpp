@@ -121,18 +121,18 @@ namespace QuantLib {
         for (Size i=0; i<referenceSwaptions_.size(); ++i) {
             std::string name = "black76vola_";
             name += boost::lexical_cast<std::string>( i+1 );
-            std::map<std::string,boost::any>::const_iterator stDev = referenceSwaptions_[i]->additionalResults().find("stdDev");
+            std::map<std::string,ext::any>::const_iterator stDev = referenceSwaptions_[i]->additionalResults().find("stdDev");
             if (stDev!=referenceSwaptions_[i]->additionalResults().end()) {
                 results_.additionalResults[name] = 
-                    boost::any_cast<Real>(stDev->second) / std::sqrt(model_->termStructure()->dayCounter().yearFraction(today,referenceSwaptions_[i]->exercise()->dates()[0]));
+                    ext::any_cast<Real>(stDev->second) / std::sqrt(model_->termStructure()->dayCounter().yearFraction(today,referenceSwaptions_[i]->exercise()->dates()[0]));
             }
         }
         for (Size i=0; i<referenceSwaptions_.size(); ++i) {
             std::string name = "black76vega_";
             name += boost::lexical_cast<std::string>( i+1 );
-            std::map<std::string,boost::any>::const_iterator vega = referenceSwaptions_[i]->additionalResults().find("vega");
+            std::map<std::string,ext::any>::const_iterator vega = referenceSwaptions_[i]->additionalResults().find("vega");
             if (vega!=referenceSwaptions_[i]->additionalResults().end()) {
-                results_.additionalResults[name] = 	boost::any_cast<Real>(vega->second);
+                results_.additionalResults[name] = 	ext::any_cast<Real>(vega->second);
             }
         }
         // if we have an AD-enabeled model report vega(s) here...
@@ -147,9 +147,9 @@ namespace QuantLib {
             }
             // finally differentiate reference prices w.r.t. Black'76 volas
             for (Size i=0; i<std::min(vegas.size(),referenceSwaptions_.size()); ++i) {
-                std::map<std::string,boost::any>::const_iterator vega = referenceSwaptions_[i]->additionalResults().find("vega");
+                std::map<std::string,ext::any>::const_iterator vega = referenceSwaptions_[i]->additionalResults().find("vega");
                 if (vega!=referenceSwaptions_[i]->additionalResults().end()) {
-                    vegas[i] *= boost::any_cast<Real>(vega->second);
+                    vegas[i] *= ext::any_cast<Real>(vega->second);
                 }
             }
             // the sum of vegas represents the sensitivity w.r.t. to a parallel shift of the B76 vola surface
