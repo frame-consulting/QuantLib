@@ -181,9 +181,9 @@ namespace QuantLib {
         virtual ~QGCalibrator() = default;
 
         // a single optimisation run
-        Integer calibrate( const std::vector< std::vector< Real > >&  isInput,
-                           const std::vector< std::vector< Real > >&  isOutput,
-                           Real                                       epsfcn = 1.0e-4 );  // delta for finite differences
+        EndCriteria::Type calibrate(const std::vector<std::vector<Real>>& isInput,
+                                    const std::vector< std::vector< Real > >&  isOutput,
+                                    Real                                       epsfcn = 1.0e-4 );  // delta for finite differences
 
         // inspectors
         inline const ext::shared_ptr<QuasiGaussianModel> calibratedModel() const { return calibratedModel_; }

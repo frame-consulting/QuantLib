@@ -231,7 +231,8 @@ namespace QuantLib {
         // better check and adjust model times...
     }
 
-    Integer QuasiGaussianModelCalibrator::calibrate(
+    EndCriteria::Type
+    QuasiGaussianModelCalibrator::calibrate(
                                    const std::vector< std::vector< Real > >&  isInput,
                                    const std::vector< std::vector< Real > >&  isOutput,
                                     // optimization parameters
@@ -248,9 +249,9 @@ namespace QuantLib {
         LevenbergMarquardt optimizationMethod(epsfcn, xtol, gtol);
         EndCriteria endCriteria(maxfev, 100 /* unused */, 0 /* unused */, ftol, 0 /* unused */);
         // calibrate
-        optimizationMethod.minimize(problem,endCriteria);
+        EndCriteria::Type info = optimizationMethod.minimize(problem, endCriteria);
         calibratedModel_ = obj.model(problem.currentValue());
-        return optimizationMethod.getInfo();
+        return info;
     }
 
 

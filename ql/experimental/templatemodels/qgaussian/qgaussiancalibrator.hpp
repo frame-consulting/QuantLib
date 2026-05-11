@@ -167,14 +167,14 @@ namespace QuantLib {
                                       Real                               modelTimesStepSize,
                                       bool                               useExpectedXY);
 
-        Integer calibrate( const std::vector< std::vector< Real > >&  isInput,
-                           const std::vector< std::vector< Real > >&  isOutput,
-                           // optimization parameters
-                           Real                                       epsfcn = 1.0e-10,
-                           Real                                       ftol   = 1.0e-8,
-                           Real                                       xtol   = 1.0e-8,
-                           Real                                       gtol   = 1.0e-8,
-                           Size                                       maxfev = 10000    );
+        EndCriteria::Type calibrate(const std::vector<std::vector<Real>>& isInput,
+                                    const std::vector< std::vector< Real > >&  isOutput,
+                                    // optimization parameters
+                                    Real                                       epsfcn = 1.0e-10,
+                                    Real                                       ftol   = 1.0e-8,
+                                    Real                                       xtol   = 1.0e-8,
+                                    Real                                       gtol   = 1.0e-8,
+                                    Size                                       maxfev = 10000    );
 
         // inspectors
         inline const ext::shared_ptr<RealQuasiGaussianModel> calibratedModel() const { return calibratedModel_; }
