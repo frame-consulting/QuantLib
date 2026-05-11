@@ -327,7 +327,7 @@ namespace QuantLib {
         }
     }
 
-    Integer QGCalibrator::calibrate(
+    EndCriteria::Type QGCalibrator::calibrate(
                                    const std::vector< std::vector< Real > >&  isInput,
                                    const std::vector< std::vector< Real > >&  isOutput,
                                     // optimization parameters
@@ -340,9 +340,10 @@ namespace QuantLib {
         LevenbergMarquardt optimizationMethod(epsfcn, endCriteria_.rootEpsilon(), endCriteria_.gradientNormEpsilon());  // (epsfcn, xtol, gtol)
         // EndCriteria endCriteria(maxfev, 100 /* unused */, 0 /* unused */, ftol, 0 /* unused */);
         // calibrate
-        optimizationMethod.minimize(problem,endCriteria_);  // here we use maxfev and ftol
+        EndCriteria::Type info =
+            optimizationMethod.minimize(problem, endCriteria_); // here we use maxfev and ftol
         calibratedModel_ = obj.model(problem.currentValue());
-        return optimizationMethod.getInfo();
+        return info;
     }
 
 
