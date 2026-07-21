@@ -87,6 +87,30 @@ namespace QuantLib {
               // call factory
               setupInterpolation();
         }
+
+        BaseCorrelationTermStructure(const Date& referenceDate,
+                                     const Calendar& cal,
+                                     BusinessDayConvention bdc,
+                                     const std::vector<Date>& trancheDates, // sorted
+                                     const std::vector<Real>& lossLevel, // sorted
+                                     const std::vector<std::vector<Handle<Quote>>>& correls,
+                                     const DayCounter& dc = DayCounter())
+        : CorrelationTermStructure(referenceDate, cal, bdc, dc), correlHandles_(correls),
+          correlations_(correls.size(), correls.front().size()),
+          nTrancheTenors_(trancheDates.size()),
+          nLosses_(lossLevel.size()),
+          tenors_(trancheDates.size()), // should not be used
+          lossLevel_(lossLevel),
+          trancheDates_(trancheDates),
+          trancheTimes_(trancheDates.size(), 0.) {
+            initializeTrancheTimes();
+            checkInputs(correlations_.rows(), correlations_.columns());
+            updateMatrix();
+            registerWithMarketData();
+            // call factory
+            setupInterpolation();
+        }
+
     private:
         virtual void setupInterpolation() ;
     public:

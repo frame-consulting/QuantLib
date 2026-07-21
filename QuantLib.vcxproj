@@ -626,6 +626,7 @@
     <ClInclude Include="ql\experimental\credit\blackcdsoptionengine.hpp" />
     <ClInclude Include="ql\experimental\credit\cdo.hpp" />
     <ClInclude Include="ql\experimental\credit\cdsoption.hpp" />
+    <ClInclude Include="ql\experimental\credit\choekwondefaultlossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\constantlosslatentmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\correlationstructure.hpp" />
     <ClInclude Include="ql\experimental\credit\defaultevent.hpp" />
@@ -637,6 +638,7 @@
     <ClInclude Include="ql\experimental\credit\factorspreadedhazardratecurve.hpp" />
     <ClInclude Include="ql\experimental\credit\gaussianlhplossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\homogeneouspooldef.hpp" />
+    <ClInclude Include="ql\experimental\credit\hullwhitebucketingdefaultlossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\inhomogeneouspooldef.hpp" />
     <ClInclude Include="ql\experimental\credit\integralcdoengine.hpp" />
     <ClInclude Include="ql\experimental\credit\integralntdengine.hpp" />
@@ -663,6 +665,7 @@
     <ClInclude Include="ql\experimental\credit\spotlosslatentmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\spreadedhazardratecurve.hpp" />
     <ClInclude Include="ql\experimental\credit\syntheticcdo.hpp" />
+    <ClInclude Include="ql\experimental\credit\tranchesurvivalprobabilitytermstructure.hpp" />
     <ClInclude Include="ql\experimental\exoticoptions\all.hpp" />
     <ClInclude Include="ql\experimental\exoticoptions\continuousarithmeticasianvecerengine.hpp" />
     <ClInclude Include="ql\experimental\exoticoptions\everestoption.hpp" />
@@ -1694,6 +1697,7 @@
     <ClInclude Include="ql\termstructures\all.hpp" />
     <ClInclude Include="ql\termstructures\bootstraperror.hpp" />
     <ClInclude Include="ql\termstructures\bootstraphelper.hpp" />
+    <ClInclude Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.hpp" />
     <ClInclude Include="ql\termstructures\credit\all.hpp" />
     <ClInclude Include="ql\termstructures\credit\defaultdensitystructure.hpp" />
     <ClInclude Include="ql\termstructures\credit\defaultprobabilityhelpers.hpp" />
@@ -2059,6 +2063,7 @@
     <ClCompile Include="ql\experimental\credit\blackcdsoptionengine.cpp" />
     <ClCompile Include="ql\experimental\credit\cdo.cpp" />
     <ClCompile Include="ql\experimental\credit\cdsoption.cpp" />
+    <ClCompile Include="ql\experimental\credit\choekwondefaultlossmodel.cpp" />
     <ClCompile Include="ql\experimental\credit\correlationstructure.cpp" />
     <ClCompile Include="ql\experimental\credit\defaultevent.cpp" />
     <ClCompile Include="ql\experimental\credit\defaultprobabilitykey.cpp" />
@@ -2081,6 +2086,7 @@
     <ClCompile Include="ql\experimental\credit\riskyassetswap.cpp" />
     <ClCompile Include="ql\experimental\credit\riskyassetswapoption.cpp" />
     <ClCompile Include="ql\experimental\credit\syntheticcdo.cpp" />
+    <ClCompile Include="ql\experimental\credit\tranchesurvivalprobabilitytermstructure.cpp" />
     <ClCompile Include="ql\experimental\exoticoptions\continuousarithmeticasianvecerengine.cpp" />
     <ClCompile Include="ql\experimental\exoticoptions\everestoption.cpp" />
     <ClCompile Include="ql\experimental\exoticoptions\himalayaoption.cpp" />
@@ -2777,6 +2783,7 @@
     <ClCompile Include="ql\quotes\futuresconvadjustmentquote.cpp" />
     <ClCompile Include="ql\quotes\impliedstddevquote.cpp" />
     <ClCompile Include="ql\quotes\lastfixingquote.cpp" />
+    <ClCompile Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.cpp" />
     <ClCompile Include="ql\termstructures\credit\defaultdensitystructure.cpp" />
     <ClCompile Include="ql\termstructures\credit\defaultprobabilityhelpers.cpp" />
     <ClCompile Include="ql\termstructures\credit\flathazardrate.cpp" />

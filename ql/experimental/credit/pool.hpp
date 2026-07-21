@@ -32,6 +32,10 @@ namespace QuantLib {
     class Pool {
       public:
         Pool();
+
+        Pool(const std::vector<std::string>& names,
+             const std::vector<Handle<DefaultProbabilityTermStructure>>& termStructures);
+
         Size size() const;
         void clear();
         bool has (const std::string& name) const;

@@ -977,7 +977,7 @@
     </ClInclude>
     <ClInclude Include="ql\instruments\fxforward.hpp">
       <Filter>instruments</Filter>
-    </ClInclude>	
+    </ClInclude>
     <ClInclude Include="ql\instruments\bonds\all.hpp">
       <Filter>instruments\bonds</Filter>
     </ClInclude>
@@ -2606,7 +2606,7 @@
     </ClInclude>
     <ClInclude Include="ql\pricingengines\forward\discountingfxforwardengine.hpp">
       <Filter>pricingengines\forward</Filter>
-    </ClInclude>	
+    </ClInclude>
     <ClInclude Include="ql\pricingengines\quanto\all.hpp">
       <Filter>pricingengines\quanto</Filter>
     </ClInclude>
@@ -4626,6 +4626,18 @@
     <ClInclude Include="ql\pricingengines\vanilla\cashdividendeuropeanengine.hpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClInclude>
+    <ClInclude Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.hpp">
+      <Filter>termstructures\credit</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\credit\hullwhitebucketingdefaultlossmodel.hpp">
+      <Filter>experimental\credit</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\credit\choekwondefaultlossmodel.hpp">
+      <Filter>experimental\credit</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\credit\tranchesurvivalprobabilitytermstructure.hpp">
+      <Filter>experimental\credit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ql\methods\montecarlo\brownianbridge.cpp">
@@ -5023,7 +5035,7 @@
     </ClCompile>
     <ClCompile Include="ql\instruments\fxforward.cpp">
       <Filter>instruments</Filter>
-    </ClCompile>	
+    </ClCompile>
     <ClCompile Include="ql\instruments\bonds\amortizingcmsratebond.cpp">
       <Filter>instruments\bonds</Filter>
     </ClCompile>
@@ -6211,7 +6223,7 @@
     </ClCompile>
     <ClCompile Include="ql\pricingengines\forward\discountingfxforwardengine.cpp">
       <Filter>pricingengines\forward</Filter>
-    </ClCompile>	
+    </ClCompile>
     <ClCompile Include="ql\pricingengines\inflation\inflationcapfloorengines.cpp">
       <Filter>pricingengines\inflation</Filter>
     </ClCompile>
@@ -7536,6 +7548,15 @@
     </ClCompile>
     <ClCompile Include="ql\pricingengines\vanilla\cashdividendeuropeanengine.cpp">
       <Filter>pricingengines\vanilla</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.cpp">
+      <Filter>termstructures\credit</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\credit\choekwondefaultlossmodel.cpp">
+      <Filter>experimental\credit</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\credit\tranchesurvivalprobabilitytermstructure.cpp">
+      <Filter>experimental\credit</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@
 #include <ql/experimental/credit/blackcdsoptionengine.hpp>
 #include <ql/experimental/credit/cdo.hpp>
 #include <ql/experimental/credit/cdsoption.hpp>
+#include <ql/experimental/credit/choekwondefaultlossmodel.hpp>
 #include <ql/experimental/credit/constantlosslatentmodel.hpp>
 #include <ql/experimental/credit/correlationstructure.hpp>
 #include <ql/experimental/credit/defaultevent.hpp>
@@ -19,6 +20,7 @@
 #include <ql/experimental/credit/factorspreadedhazardratecurve.hpp>
 #include <ql/experimental/credit/gaussianlhplossmodel.hpp>
 #include <ql/experimental/credit/homogeneouspooldef.hpp>
+#include <ql/experimental/credit/hullwhitebucketingdefaultlossmodel.hpp>
 #include <ql/experimental/credit/inhomogeneouspooldef.hpp>
 #include <ql/experimental/credit/integralcdoengine.hpp>
 #include <ql/experimental/credit/integralntdengine.hpp>
@@ -45,4 +47,5 @@
 #include <ql/experimental/credit/spotlosslatentmodel.hpp>
 #include <ql/experimental/credit/spreadedhazardratecurve.hpp>
 #include <ql/experimental/credit/syntheticcdo.hpp>
+#include <ql/experimental/credit/tranchesurvivalprobabilitytermstructure.hpp>
 

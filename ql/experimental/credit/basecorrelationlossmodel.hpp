@@ -30,7 +30,9 @@
 
 // move these to the CPP (and the template spezs)
 #include <ql/experimental/credit/binomiallossmodel.hpp>
+#include <ql/experimental/credit/choekwondefaultlossmodel.hpp>
 #include <ql/experimental/credit/gaussianlhplossmodel.hpp>
+#include <ql/experimental/credit/hullwhitebucketingdefaultlossmodel.hpp>
 #include <ql/experimental/credit/inhomogeneouspooldef.hpp>
 #include <utility>
 
@@ -93,18 +95,96 @@ namespace QuantLib {
         public virtual Observer {
     private:
         typedef typename BaseModel_T::copulaType::initTraits initTraits;
+        // Bucketing parameters
+        Real recoveryScaling_;
+        Size nBuckets_;
+        Real max_;
+        Real min_;
+        Size nSteps_;
+        // Choe/Kwon model parameters
+        Real p_;
+        Real q_;
+        Real mu_;
+        Real b_;
     public:
-      BaseCorrelationLossModel(const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
-                               std::vector<Real> recoveries,
-                               const initTraits& traits = initTraits())
+      BaseCorrelationLossModel(
+          const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
+          std::vector<Real> recoveries,
+          const initTraits& traits = initTraits()
+      )
       : localCorrelationAttach_(ext::make_shared<SimpleQuote>(0.)),
         localCorrelationDetach_(ext::make_shared<SimpleQuote>(0.)),
-        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits) {
+        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits)
+      {
           registerWith(correlTS);
           registerWith(Settings::instance().evaluationDate());
+          resetAllModelparameters();
+      }
+
+      BaseCorrelationLossModel(
+          const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
+          std::vector<Real> recoveries,
+          const initTraits& traits,
+          const Real recoveryScaling,
+          const Size nBuckets,
+          const Real max,
+          const Real min,
+          const Size nSteps
+      )
+      : localCorrelationAttach_(ext::make_shared<SimpleQuote>(0.)),
+        localCorrelationDetach_(ext::make_shared<SimpleQuote>(0.)),
+        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits)
+      {
+          registerWith(correlTS);
+          registerWith(Settings::instance().evaluationDate());
+          resetAllModelparameters();
+          // Bucketing parameters
+          recoveryScaling_ = recoveryScaling;
+          nBuckets_ = nBuckets;
+          max_ = max;
+          min_ = min;
+          nSteps_ = nSteps;
+      }
+
+      BaseCorrelationLossModel(
+          const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
+          std::vector<Real> recoveries,
+          const initTraits& traits,
+          const Real p,
+          const Real q,
+          const Real mu,
+          const Real b
+      )
+      : localCorrelationAttach_(ext::make_shared<SimpleQuote>(0.)),
+        localCorrelationDetach_(ext::make_shared<SimpleQuote>(0.)),
+        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits)
+      {
+          registerWith(correlTS);
+          registerWith(Settings::instance().evaluationDate());
+          resetAllModelparameters();
+          // Choe/Kwon parameters
+          p_ = p;
+          q_ = q;
+          mu_ = mu;
+          b_ = b;
       }
 
     private:
+      void resetAllModelparameters() {
+          // Bucketing default parameters
+          recoveryScaling_ = 1.0;
+          nBuckets_ = 200;
+          max_ = 5.0;
+          min_ = -5.0;
+          nSteps_ = 50;
+          // Choe/Kwon default parameters (LHP boundary case)
+          Real p_ = 0.0;
+          Real q_ = 0.0;
+          Real mu_ = 0.0;
+          Real b_ = 0.0;
+      }
+
+
         // react to base correl surface notifications (quotes or reference date)
       void update() override {
           setupModels();
@@ -269,16 +349,55 @@ namespace QuantLib {
                 LatentModelIntegrationType::GaussianQuadrature, 
                 recoveries_.size(), copulaTraits_);
 
-        // \todo Allow the sending specific model params, as the number of 
-        //   buckets here.
         scalarCorrelModelAttach_ = 
-            ext::make_shared<IHGaussPoolLossModel>(lmA, 500);
+            ext::make_shared<IHGaussPoolLossModel>(lmA, nBuckets_, max_, min_, nSteps_);
         scalarCorrelModelDetach_ = 
-            ext::make_shared<IHGaussPoolLossModel>(lmD, 500);
+            ext::make_shared<IHGaussPoolLossModel>(lmD, nBuckets_, max_, min_, nSteps_);
             
         basketAttach_->setLossModel(scalarCorrelModelAttach_);
         basketDetach_->setLossModel(scalarCorrelModelDetach_);
     }
+
+    template <>
+    inline void BaseCorrelationLossModel<GaussianHullWhiteBucketingDefaultLossModel,
+                                         BilinearInterpolation>::setupModels() const {
+        ext::shared_ptr<GaussianConstantLossLM> lmA = ext::make_shared<GaussianConstantLossLM>(
+            Handle<Quote>(localCorrelationAttach_), recoveries_,
+            LatentModelIntegrationType::GaussianQuadrature, recoveries_.size(), copulaTraits_);
+        ext::shared_ptr<GaussianConstantLossLM> lmD = ext::make_shared<GaussianConstantLossLM>(
+            Handle<Quote>(localCorrelationDetach_), recoveries_,
+            LatentModelIntegrationType::GaussianQuadrature, recoveries_.size(), copulaTraits_);
+
+        GaussianHullWhiteBucketingDefaultLossModel::UpperBoundStrategy upperBoundStrategy =
+            GaussianHullWhiteBucketingDefaultLossModel::One;
+        bool enforceDistribution = true;
+
+        scalarCorrelModelAttach_ = ext::make_shared<GaussianHullWhiteBucketingDefaultLossModel>(
+            lmA, recoveryScaling_, nBuckets_, max_, min_, nSteps_, upperBoundStrategy,
+            enforceDistribution);
+        scalarCorrelModelDetach_ = ext::make_shared<GaussianHullWhiteBucketingDefaultLossModel>(
+            lmD, recoveryScaling_, nBuckets_, max_, min_, nSteps_, upperBoundStrategy,
+            enforceDistribution);
+
+        basketAttach_->setLossModel(scalarCorrelModelAttach_);
+        basketDetach_->setLossModel(scalarCorrelModelDetach_);
+    }
+
+    template<>
+    inline void BaseCorrelationLossModel<ChoeKwonDefaultLossModel,
+        BilinearInterpolation>::setupModels() const
+    {
+        // on this assignment any previous registration with the attach and
+        //   detach baskets should be removed
+        scalarCorrelModelAttach_ = ext::make_shared<ChoeKwonDefaultLossModel>(
+            Handle<Quote>(localCorrelationAttach_), recoveries_, p_, q_, mu_, b_);
+        scalarCorrelModelDetach_ = ext::make_shared<ChoeKwonDefaultLossModel>(
+            Handle<Quote>(localCorrelationDetach_), recoveries_, p_, q_, mu_, b_);
+
+        basketAttach_->setLossModel(scalarCorrelModelAttach_);
+        basketDetach_->setLossModel(scalarCorrelModelDetach_);
+    }
+
 
     #endif
 

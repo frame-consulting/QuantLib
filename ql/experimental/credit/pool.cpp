@@ -27,6 +27,18 @@ namespace QuantLib {
         clear();
     }
 
+    Pool::Pool(const std::vector<std::string>& names,
+               const std::vector<Handle<DefaultProbabilityTermStructure>>& termStructures) {
+        QL_REQUIRE(names.size() == termStructures.size(),
+            "names and term structures must have the same size");
+        clear();
+        for (Size i = 0; i < names.size(); ++i) {
+            add(names[i], Issuer(std::vector<Issuer::key_curve_pair>(1,
+                std::make_pair(NorthAmericaCorpDefaultKey(Currency(), SeniorSec, Period(), 1.),
+                    termStructures[i]))));
+        }
+    }
+
     Size Pool::size() const {
         return names_.size();
     }

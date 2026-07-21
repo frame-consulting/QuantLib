@@ -187,10 +187,157 @@ namespace QuantLib {
         void initializeDates() override;
         void resetEngine() override;
         Natural upfrontSettlementDays_;
+
+      protected:
         Date upfrontDate_;
         Rate runningSpread_;
+
     };
 
+    class SpreadCdsIndexHelper : public SpreadCdsHelper {
+      private:
+        void resetEngine() override;
+
+      protected:
+        Rate runningSpread_;
+        std::vector<Handle<DefaultProbabilityTermStructure>> baseTermStructures_;
+        std::vector<Real> recoveryRates_;
+        std::vector<RelinkableHandle<DefaultProbabilityTermStructure>> adjustedTermStructures_;
+        std::vector<ext::shared_ptr<CreditDefaultSwap>> swaps_;
+        std::vector<Real> weights_;
+        // allow for inspection of intermediate results
+        mutable Real couponLegNPV_ = 0.0;
+        mutable Real defaultLegNPV_ = 0.0;
+        mutable Real accrualRebateNPV_ = 0.0;
+        mutable Real riskyAnnuity_ = 0.0;
+
+      public:
+        SpreadCdsIndexHelper(
+            const Handle<Quote>& fairIndexSpread,
+            const Rate runningSpread,
+            const Period& tenor,
+            Integer settlementDays,
+            const Calendar& calendar,
+            Frequency frequency,
+            BusinessDayConvention paymentConvention,
+            DateGeneration::Rule rule,
+            const DayCounter& dayCounter,
+            const Handle<YieldTermStructure>& discountCurve,
+            const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+            const std::vector<Real>& recoveryRates,
+            const std::vector<Real>& weights,
+            bool settlesAccrual = true,
+            bool paysAtDefaultTime = true,
+            const Date& startDate = Date(),
+            const DayCounter& lastPeriodDayCounter = DayCounter(),
+            bool rebatesAccrual = true,
+            CreditDefaultSwap::PricingModel model = CreditDefaultSwap::Midpoint);
+
+        SpreadCdsIndexHelper(
+            Rate fairIndexSpread,
+            Rate runningSpread,
+            const Period& tenor,
+            Integer settlementDays,                  // ISDA: 1
+            const Calendar& calendar,
+            Frequency frequency,                     // ISDA: Quarterly
+            BusinessDayConvention paymentConvention, // ISDA:Following
+            DateGeneration::Rule rule,               // ISDA: CDS
+            const DayCounter& dayCounter,            // ISDA: Actual/360
+            const Handle<YieldTermStructure>& discountCurve,
+            const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+            const std::vector<Real>& recoveryRates,
+            const std::vector<Real>& weights,
+            bool settlesAccrual = true,
+            bool paysAtDefaultTime = true,
+            const Date& startDate = Date(),
+            const DayCounter& lastPeriodDayCounter = DayCounter(), // ISDA: Actual/360(inc)
+            bool rebatesAccrual = true,                            // ISDA: true
+            CreditDefaultSwap::PricingModel model = CreditDefaultSwap::Midpoint);
+
+        Real impliedQuote() const override;
+        Real couponLegNPV() const { return couponLegNPV_; }
+        Real defaultLegNPV() const { return defaultLegNPV_; }
+        Real accrualRebateNPV() const { return accrualRebateNPV_; }
+        Real riskyAnnuity() const { return riskyAnnuity_; }
+        std::vector<RelinkableHandle<DefaultProbabilityTermStructure>>
+        adjustedTermStructures() const {
+            return adjustedTermStructures_;
+        }
+        std::vector<ext::shared_ptr<CreditDefaultSwap>> swaps() const { return swaps_; }
+    };
+
+    class UpfrontCdsIndexHelper : public UpfrontCdsHelper {
+      private:
+        void resetEngine() override;
+
+      protected:
+        std::vector<Handle<DefaultProbabilityTermStructure>> baseTermStructures_;
+        std::vector<Real> recoveryRates_;
+        std::vector<RelinkableHandle<DefaultProbabilityTermStructure>> adjustedTermStructures_;
+        std::vector<ext::shared_ptr<CreditDefaultSwap>> swaps_;
+        std::vector<Real> weights_;
+        // allow for inspection of intermediate results
+        mutable Real couponLegNPV_ = 0.0;
+        mutable Real defaultLegNPV_ = 0.0;
+        mutable Real accrualRebateNPV_ = 0.0;
+        mutable Real riskyAnnuity_ = 0.0;
+
+      public:
+        UpfrontCdsIndexHelper(
+            const Handle<Quote>& fairUpfront,
+            const Rate runningSpread,
+            const Period& tenor,
+            Integer settlementDays,
+            const Calendar& calendar,
+            Frequency frequency,
+            BusinessDayConvention paymentConvention,
+            DateGeneration::Rule rule,
+            const DayCounter& dayCounter,
+            const Handle<YieldTermStructure>& discountCurve,
+            const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+            const std::vector<Real>& recoveryRates,
+            const std::vector<Real>& weights,
+            Natural upfrontSettlementDays = 3,
+            bool settlesAccrual = true,
+            bool paysAtDefaultTime = true,
+            const Date& startDate = Date(),
+            const DayCounter& lastPeriodDayCounter = DayCounter(),
+            bool rebatesAccrual = true,
+            CreditDefaultSwap::PricingModel model = CreditDefaultSwap::Midpoint);
+
+        UpfrontCdsIndexHelper(
+            Rate fairUpfront,
+            const Rate runningSpread,
+            const Period& tenor,
+            Integer settlementDays,
+            const Calendar& calendar,
+            Frequency frequency,
+            BusinessDayConvention paymentConvention,
+            DateGeneration::Rule rule,
+            const DayCounter& dayCounter,
+            const Handle<YieldTermStructure>& discountCurve,
+            const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+            const std::vector<Real>& recoveryRates,
+            const std::vector<Real>& weights,
+            Natural upfrontSettlementDays = 3,
+            bool settlesAccrual = true,
+            bool paysAtDefaultTime = true,
+            const Date& startDate = Date(),
+            const DayCounter& lastPeriodDayCounter = DayCounter(),
+            bool rebatesAccrual = true,
+            CreditDefaultSwap::PricingModel model = CreditDefaultSwap::Midpoint);
+
+        Real impliedQuote() const override;
+        Real couponLegNPV() const { return couponLegNPV_; }
+        Real defaultLegNPV() const { return defaultLegNPV_; }
+        Real accrualRebateNPV() const { return accrualRebateNPV_; }
+        Real riskyAnnuity() const { return riskyAnnuity_; }
+        std::vector<RelinkableHandle<DefaultProbabilityTermStructure>>
+        adjustedTermStructures() const {
+            return adjustedTermStructures_;
+        }
+        std::vector<ext::shared_ptr<CreditDefaultSwap>> swaps() const { return swaps_; }
+    };
 }
 
 
