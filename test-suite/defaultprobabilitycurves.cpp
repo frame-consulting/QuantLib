@@ -26,6 +26,7 @@
 #include <ql/math/interpolations/loginterpolation.hpp>
 #include <ql/pricingengines/credit/midpointcdsengine.hpp>
 #include <ql/quotes/simplequote.hpp>
+#include <ql/termstructures/credit/adjustedsurvivalprobabilitystructure.hpp>
 #include <ql/termstructures/credit/defaultprobabilityhelpers.hpp>
 #include <ql/termstructures/credit/flathazardrate.hpp>
 #include <ql/termstructures/credit/piecewisedefaultcurve.hpp>
@@ -526,6 +527,70 @@ BOOST_AUTO_TEST_CASE(testIterativeBootstrapRetries) {
     IterativeBootstrap<SPCurve> ibNoThrow(Null<Real>(), Null<Real>(), Null<Real>(), 5, 1.0, 10.0, true, 2);
     dpts = ext::make_shared<SPCurve>(asof, instruments, tsDayCounter, ibNoThrow);
     BOOST_CHECK_NO_THROW(dpts->survivalProbability(testDate));
+}
+
+
+BOOST_AUTO_TEST_CASE(testAdjustedSurvivalProbabilityStructure) {
+
+    BOOST_TEST_MESSAGE("Testing AdjustedSurvivalProbabilityStructure creation and methodology...");
+
+    Date today = Settings::instance().evaluationDate();
+
+    Real hazardRate = 0.0100;
+    Handle<Quote> hazardRateQuote =
+        Handle<Quote>(ext::shared_ptr<Quote>(new SimpleQuote(hazardRate)));
+    DayCounter dayCounter = Actual360();
+    Calendar calendar = TARGET();
+
+    Handle<DefaultProbabilityTermStructure> baseCurve(
+        ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRateQuote, dayCounter)));
+
+    vector<Date> dates = {today, today + 365, today + 730};
+    vector<double> adjusterValues = {1.0, 2.0, 0.5};
+
+    Handle<DefaultProbabilityTermStructure> adjusterCurve(
+        ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new InterpolatedHazardRateCurve<BackwardFlat>(dates, adjusterValues, dayCounter)));
+
+    AdjustedSurvivalProbabilityStructure adjustedCurve(baseCurve, adjusterCurve);
+
+    vector<Date> testDates = {
+        today,
+        today + 1,
+        today + 364,
+        today + 365,
+        today + 366,
+        today + 545,
+        today + 729,
+        today + 730,
+        today + 731,
+        today + 910,
+    };
+    vector<double> refValues = {
+        0.02,  // forward finite differences
+        0.02,
+        0.02,
+        0.0125, // central finite differences
+        0.005,
+        0.005,
+        0.005,
+        0.005,
+        0.005,
+        0.005,
+    };
+
+    double abs_tol = 2.1e-8; // hazard rates are calculated via finite differences
+    for (Size k = 0; k < 10; ++k) {
+        auto testValue = adjustedCurve.hazardRate(testDates[k], true);
+        if (fabs(testValue - refValues[k]) > abs_tol) {
+            BOOST_FAIL("Scaled hazard rate for index " << k << ", " << testDates[k] << " is "
+                                                       << testValue << ", expected " << refValues[k] << ".");
+        }
+    }
+
+    BOOST_CHECK_EXCEPTION(AdjustedSurvivalProbabilityStructure(baseCurve, baseCurve), Error,
+                          ExpectedErrorMessage("adjusterTermStructure must link to a HazardRateCurve"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

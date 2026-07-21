@@ -1768,6 +1768,7 @@
     <ClInclude Include="ql\termstructures\all.hpp" />
     <ClInclude Include="ql\termstructures\bootstraperror.hpp" />
     <ClInclude Include="ql\termstructures\bootstraphelper.hpp" />
+    <ClInclude Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.hpp" />
     <ClInclude Include="ql\termstructures\credit\all.hpp" />
     <ClInclude Include="ql\termstructures\credit\defaultdensitystructure.hpp" />
     <ClInclude Include="ql\termstructures\credit\defaultprobabilityhelpers.hpp" />
@@ -2848,6 +2849,7 @@
     <ClCompile Include="ql\quotes\futuresconvadjustmentquote.cpp" />
     <ClCompile Include="ql\quotes\impliedstddevquote.cpp" />
     <ClCompile Include="ql\quotes\lastfixingquote.cpp" />
+    <ClCompile Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.cpp" />
     <ClCompile Include="ql\termstructures\credit\defaultdensitystructure.cpp" />
     <ClCompile Include="ql\termstructures\credit\defaultprobabilityhelpers.cpp" />
     <ClCompile Include="ql\termstructures\credit\flathazardrate.cpp" />
