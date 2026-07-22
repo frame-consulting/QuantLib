@@ -32,7 +32,7 @@
 /*! @{ */
 
 //! version string
-#define QL_VERSION "1.42.1-7f885ced7"
+#define QL_VERSION "1.42.1-credit"
 
 //! version hexadecimal number
 #define QL_HEX_VERSION 0x014201f0
