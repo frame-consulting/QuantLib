@@ -264,6 +264,72 @@ namespace QuantLib {
         static Size maxIterations() { return 30; }
     };
 
+    //! Adjuster to hazard-rate-curve traits
+    struct HazardRateAdjuster {
+        // interpolated curve type
+        template <class Interpolator>
+        struct curve {
+            typedef InterpolatedHazardRateCurve<Interpolator> type;
+        };
+        // helper class
+        typedef BootstrapHelper<DefaultProbabilityTermStructure> helper;
+
+        // start of curve data
+        static Date initialDate(const DefaultProbabilityTermStructure* c) {
+            return c->referenceDate();
+        }
+        // default value at reference date
+        static Real initialValue(const DefaultProbabilityTermStructure*) {
+            return 1.0;
+        }
+
+        // guesses
+        template <class C>
+        static Real guess(Size i,
+                          const C* c,
+                          bool validData,
+                          Size) // firstAliveHelper
+        {
+            if (validData) // previous iteration value
+                return c->data()[i];
+            return 1.0; // no-adjuster
+        }
+
+        // constraints
+        template <class C>
+        static Real minValueAfter(Size i,
+                                  const C* c,
+                                  bool validData,
+                                  Size) // firstAliveHelper
+        {
+            if (validData) {
+                Real r = *(std::min_element(c->data().begin(), c->data().end()));
+                return r / 2.0;
+            }
+            return 0.1;  // fall-back
+        }
+        template <class C>
+        static Real maxValueAfter(Size i,
+                                  const C* c,
+                                  bool validData,
+                                  Size) // firstAliveHelper
+        {
+            if (validData) {
+                Real r = *(std::max_element(c->data().begin(), c->data().end()));
+                return r * 2.0;
+            }
+            return 10.0;  // fall-back
+        }
+        // update with new guess
+        static void updateGuess(std::vector<Real>& data, Real adjuster, Size i) {
+            data[i] = adjuster;
+            if (i == 1)
+                data[0] = adjuster; // first point is updated as well
+        }
+        // upper bound for convergence loop
+        static Size maxIterations() { return 30; }
+    };
+
 }
 
 #endif
