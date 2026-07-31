@@ -19,6 +19,7 @@
 #include <ql/experimental/credit/factorspreadedhazardratecurve.hpp>
 #include <ql/experimental/credit/gaussianlhplossmodel.hpp>
 #include <ql/experimental/credit/homogeneouspooldef.hpp>
+#include <ql/experimental/credit/hullwhitebucketingdefaultlossmodel.hpp>
 #include <ql/experimental/credit/inhomogeneouspooldef.hpp>
 #include <ql/experimental/credit/integralcdoengine.hpp>
 #include <ql/experimental/credit/integralntdengine.hpp>

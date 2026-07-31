@@ -24,6 +24,7 @@
 #include <ql/experimental/credit/cdo.hpp>
 #include <ql/experimental/credit/gaussianlhplossmodel.hpp>
 #include <ql/experimental/credit/homogeneouspooldef.hpp>
+#include <ql/experimental/credit/hullwhitebucketingdefaultlossmodel.hpp>
 #include <ql/experimental/credit/inhomogeneouspooldef.hpp>
 #include <ql/experimental/credit/integralcdoengine.hpp>
 #include <ql/experimental/credit/midpointcdoengine.hpp>
@@ -212,6 +213,23 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(testHW, T, dataSets) {
         absoluteTolerance.push_back(10.);
         relativeToleranceMidp.push_back(0.5);
         relativeTolerancePeriod.push_back(0.5);
+        // Hull White Bucketing w/o recovery write-down
+        Real recoveryScaling = 1.0;
+        modelNames.emplace_back("Hull White Bucketing w/o scaling");
+        basketModels.push_back(ext::shared_ptr<DefaultLossModel>(new GaussianHullWhiteBucketingDefaultLossModel(
+                gaussKtLossLM, recoveryScaling, nBuckets, 5., -5, 15)));
+        absoluteTolerance.push_back(10.);
+        relativeToleranceMidp.push_back(0.5);
+        relativeTolerancePeriod.push_back(0.5);
+        // Hull White Bucketing w/ recovery write-down
+        recoveryScaling = 0.5;
+        modelNames.emplace_back("Hull White Bucketing w/ scaling");
+        basketModels.push_back(
+            ext::shared_ptr<DefaultLossModel>(new GaussianHullWhiteBucketingDefaultLossModel(
+                gaussKtLossLM, recoveryScaling, nBuckets, 5., -5, 15)));
+        absoluteTolerance.push_back(10.);
+        relativeToleranceMidp.push_back(0.5);
+        relativeTolerancePeriod.push_back(0.5);
         // Binomial...
         // Saddle point...
         // Recursive ...
@@ -243,6 +261,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(testHW, T, dataSets) {
         absoluteTolerance.push_back(1.);
         relativeToleranceMidp.push_back(0.07);
         relativeTolerancePeriod.push_back(0.07);
+        // Hull White Bucketing w/o recovery write-down
+        Real recoveryScaling = 1.0;
+        modelNames.emplace_back("Hull White Bucketing w/o scaling");
+        basketModels.push_back(ext::shared_ptr<DefaultLossModel>(new HullWhiteBucketingDefaultLossModel<TCopulaPolicy>(
+                TKtLossLM, recoveryScaling, nBuckets, 5., -5, 15)));
+        absoluteTolerance.push_back(1.);
+        relativeToleranceMidp.push_back(0.04);
+        relativeTolerancePeriod.push_back(0.04);
+        recoveryScaling = 0.5;
+        modelNames.emplace_back("Hull White Bucketing w/ scaling");
+        basketModels.push_back(
+            ext::shared_ptr<DefaultLossModel>(new HullWhiteBucketingDefaultLossModel<TCopulaPolicy>(
+                TKtLossLM, recoveryScaling, nBuckets, 5., -5, 15)));
+        absoluteTolerance.push_back(1.);
+        relativeToleranceMidp.push_back(0.10);  // expect some differences
+        relativeTolerancePeriod.push_back(0.10);
         // SECOND MC
         // Binomial...
         // Saddle point...

@@ -636,6 +636,7 @@
     <ClInclude Include="ql\experimental\credit\factorspreadedhazardratecurve.hpp" />
     <ClInclude Include="ql\experimental\credit\gaussianlhplossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\homogeneouspooldef.hpp" />
+    <ClInclude Include="ql\experimental\credit\hullwhitebucketingdefaultlossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\inhomogeneouspooldef.hpp" />
     <ClInclude Include="ql\experimental\credit\integralcdoengine.hpp" />
     <ClInclude Include="ql\experimental\credit\integralntdengine.hpp" />

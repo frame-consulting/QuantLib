@@ -4860,6 +4860,9 @@
     <ClInclude Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.hpp">
       <Filter>termstructures\credit</Filter>
     </ClInclude>
+    <ClInclude Include="ql\experimental\credit\hullwhitebucketingdefaultlossmodel.hpp">
+      <Filter>experimental\credit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ql\methods\montecarlo\brownianbridge.cpp">
