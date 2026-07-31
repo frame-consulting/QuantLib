@@ -31,6 +31,7 @@
 // move these to the CPP (and the template spezs)
 #include <ql/experimental/credit/binomiallossmodel.hpp>
 #include <ql/experimental/credit/gaussianlhplossmodel.hpp>
+#include <ql/experimental/credit/hullwhitebucketingdefaultlossmodel.hpp>
 #include <ql/experimental/credit/inhomogeneouspooldef.hpp>
 #include <utility>
 
@@ -93,13 +94,28 @@ namespace QuantLib {
         public virtual Observer {
     private:
         typedef typename BaseModel_T::copulaType::initTraits initTraits;
+        // Bucketing parameters
+        Real recoveryScaling_;
+        Size nBuckets_;
+        Real max_;
+        Real min_;
+        Size nSteps_;
     public:
-      BaseCorrelationLossModel(const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
-                               std::vector<Real> recoveries,
-                               const initTraits& traits = initTraits())
+      BaseCorrelationLossModel(
+          const Handle<BaseCorrelationTermStructure<Corr2DInt_T> >& correlTS,
+          std::vector<Real> recoveries,
+          const initTraits& traits = initTraits(),
+          const Real recoveryScaling = 1.0,
+          const Size nBuckets = 200,
+          const Real max = 5.0,
+          const Real min = -5.0,
+          const Size nSteps = 50
+      )
       : localCorrelationAttach_(ext::make_shared<SimpleQuote>(0.)),
         localCorrelationDetach_(ext::make_shared<SimpleQuote>(0.)),
-        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits) {
+        recoveries_(std::move(recoveries)), correlTS_(correlTS), copulaTraits_(traits),
+        recoveryScaling_(recoveryScaling), nBuckets_(nBuckets), max_(max), min_(min), nSteps_(nSteps)
+      {
           registerWith(correlTS);
           registerWith(Settings::instance().evaluationDate());
       }
@@ -269,16 +285,40 @@ namespace QuantLib {
                 LatentModelIntegrationType::GaussianQuadrature, 
                 recoveries_.size(), copulaTraits_);
 
-        // \todo Allow the sending specific model params, as the number of 
-        //   buckets here.
         scalarCorrelModelAttach_ = 
-            ext::make_shared<IHGaussPoolLossModel>(lmA, 500);
+            ext::make_shared<IHGaussPoolLossModel>(lmA, nBuckets_, max_, min_, nSteps_);
         scalarCorrelModelDetach_ = 
-            ext::make_shared<IHGaussPoolLossModel>(lmD, 500);
+            ext::make_shared<IHGaussPoolLossModel>(lmD, nBuckets_, max_, min_, nSteps_);
             
         basketAttach_->setLossModel(scalarCorrelModelAttach_);
         basketDetach_->setLossModel(scalarCorrelModelDetach_);
     }
+
+    template <>
+    inline void BaseCorrelationLossModel<GaussianHullWhiteBucketingDefaultLossModel,
+                                         BilinearInterpolation>::setupModels() const {
+        ext::shared_ptr<GaussianConstantLossLM> lmA = ext::make_shared<GaussianConstantLossLM>(
+            Handle<Quote>(localCorrelationAttach_), recoveries_,
+            LatentModelIntegrationType::GaussianQuadrature, recoveries_.size(), copulaTraits_);
+        ext::shared_ptr<GaussianConstantLossLM> lmD = ext::make_shared<GaussianConstantLossLM>(
+            Handle<Quote>(localCorrelationDetach_), recoveries_,
+            LatentModelIntegrationType::GaussianQuadrature, recoveries_.size(), copulaTraits_);
+
+        GaussianHullWhiteBucketingDefaultLossModel::UpperBoundStrategy upperBoundStrategy =
+            GaussianHullWhiteBucketingDefaultLossModel::One;
+        bool enforceDistribution = true;
+
+        scalarCorrelModelAttach_ = ext::make_shared<GaussianHullWhiteBucketingDefaultLossModel>(
+            lmA, recoveryScaling_, nBuckets_, max_, min_, nSteps_, upperBoundStrategy,
+            enforceDistribution);
+        scalarCorrelModelDetach_ = ext::make_shared<GaussianHullWhiteBucketingDefaultLossModel>(
+            lmD, recoveryScaling_, nBuckets_, max_, min_, nSteps_, upperBoundStrategy,
+            enforceDistribution);
+
+        basketAttach_->setLossModel(scalarCorrelModelAttach_);
+        basketDetach_->setLossModel(scalarCorrelModelDetach_);
+    }
+
 
     #endif
 
