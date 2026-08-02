@@ -4863,6 +4863,9 @@
     <ClInclude Include="ql\experimental\credit\hullwhitebucketingdefaultlossmodel.hpp">
       <Filter>experimental\credit</Filter>
     </ClInclude>
+    <ClInclude Include="ql\experimental\credit\choekwondefaultlossmodel.hpp">
+      <Filter>experimental\credit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ql\methods\montecarlo\brownianbridge.cpp">
@@ -7770,6 +7773,9 @@
     </ClCompile>
     <ClCompile Include="ql\termstructures\credit\adjustedsurvivalprobabilitystructure.cpp">
       <Filter>termstructures\credit</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\credit\choekwondefaultlossmodel.cpp">
+      <Filter>experimental\credit</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

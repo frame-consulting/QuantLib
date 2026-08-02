@@ -625,6 +625,7 @@
     <ClInclude Include="ql\experimental\credit\blackcdsoptionengine.hpp" />
     <ClInclude Include="ql\experimental\credit\cdo.hpp" />
     <ClInclude Include="ql\experimental\credit\cdsoption.hpp" />
+    <ClInclude Include="ql\experimental\credit\choekwondefaultlossmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\constantlosslatentmodel.hpp" />
     <ClInclude Include="ql\experimental\credit\correlationstructure.hpp" />
     <ClInclude Include="ql\experimental\credit\defaultevent.hpp" />
@@ -2123,6 +2124,7 @@
     <ClCompile Include="ql\experimental\credit\blackcdsoptionengine.cpp" />
     <ClCompile Include="ql\experimental\credit\cdo.cpp" />
     <ClCompile Include="ql\experimental\credit\cdsoption.cpp" />
+    <ClCompile Include="ql\experimental\credit\choekwondefaultlossmodel.cpp" />
     <ClCompile Include="ql\experimental\credit\correlationstructure.cpp" />
     <ClCompile Include="ql\experimental\credit\defaultevent.cpp" />
     <ClCompile Include="ql\experimental\credit\defaultprobabilitykey.cpp" />
