@@ -357,12 +357,13 @@ namespace QuantLib {
         for (Size k = 0; k < swaps_.size(); ++k) {
             swaps_[k]->recalculate();
         }
+        Date today = discountCurve_->referenceDate();
         Real couponLegNPV = 0.0;
         Real accrualRebateNPV = 0.0;
         Real defaultLegNPV = 0.0;
         for (Size k = 0; k < swaps_.size(); ++k) {
             couponLegNPV += weights_[k] * swaps_[k]->couponLegNPV();
-            accrualRebateNPV += weights_[k] * swaps_[k]->accrualRebateNPV();
+            accrualRebateNPV += weights_[k] * swaps_[k]->accrualRebateNPV() * baseTermStructures_[k]->survivalProbability(today);  // allow for defaulted name curves
             defaultLegNPV += weights_[k] * swaps_[k]->defaultLegNPV();
         }
         const Real riskyAnnity = -(couponLegNPV + accrualRebateNPV) / runningSpread_;
