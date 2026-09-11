@@ -252,9 +252,6 @@ namespace QuantLib {
                    "not enough input dates given");
         QL_REQUIRE(this->data_.size() == dates_.size(),
                    "dates/data count mismatch");
-        QL_REQUIRE(this->data_[0] == 1.0,
-                   "the first probability must be == 1.0 "
-                   "to flag the corresponding date as reference date");
 
         this->setupTimes(dates_, dates_[0], dayCounter());
 
