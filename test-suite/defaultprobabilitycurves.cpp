@@ -657,6 +657,76 @@ BOOST_AUTO_TEST_CASE(testSpreadCdsIndexHelper) {
 
 }
 
+BOOST_AUTO_TEST_CASE(testUpfrontCdsIndexHelper) {
+
+    BOOST_TEST_MESSAGE("Testing adjuster calibration using UpfrontCdsIndexHelper...");
+
+    Date today = Settings::instance().evaluationDate();
+
+    Calendar calendar = TARGET();
+
+
+    Integer settlementDays = 1;
+
+    double flatSpread = 0.03;
+    double upfront_spread = 0.02;  // per year
+    std::vector<Real> quote = {upfront_spread * 0.70, upfront_spread * 1.60, upfront_spread * 2.50,
+                               upfront_spread * 4.00};
+    std::vector<Integer> n = {1, 2, 3, 5};
+
+    Frequency frequency = Quarterly;
+    BusinessDayConvention convention = Following;
+    DateGeneration::Rule rule = DateGeneration::CDS2015;
+    DayCounter dayCounter = Actual360();
+    Real recoveryRate = 0.4;
+
+    RelinkableHandle<YieldTermStructure> discountCurve;
+    discountCurve.linkTo(
+        ext::shared_ptr<YieldTermStructure>(new FlatForward(today, 0.03, Actual365Fixed())));
+
+    double hazardRate = flatSpread / (1 - recoveryRate); // Brigo/Mercurio, Sec. 21.3.6
+    std::vector<Handle<DefaultProbabilityTermStructure>> baseTermStructures = {
+        Handle<DefaultProbabilityTermStructure>(ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRate, Actual365Fixed()))),
+        Handle<DefaultProbabilityTermStructure>(ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRate, Actual365Fixed()))),
+        Handle<DefaultProbabilityTermStructure>(ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRate, Actual365Fixed()))),
+        Handle<DefaultProbabilityTermStructure>(ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRate, Actual365Fixed()))),
+        Handle<DefaultProbabilityTermStructure>(ext::shared_ptr<DefaultProbabilityTermStructure>(
+            new FlatHazardRate(today, hazardRate, Actual365Fixed()))),
+    };
+    std::vector<Real> recoveryRates(5, recoveryRate);
+    std::vector<Real> weights = {0.2, 0.2, 0.2, 0.2, 0.2};
+
+    std::vector<ext::shared_ptr<DefaultProbabilityHelper>> helpers;
+    Rate runningSpread = 0.01; // 100bp
+
+    helpers.reserve(n.size());
+    for (Size i = 0; i < n.size(); i++)
+        helpers.push_back(ext::shared_ptr<DefaultProbabilityHelper>(
+            new UpfrontCdsIndexHelper(quote[i], runningSpread, Period(n[i], Years), settlementDays,
+                                     calendar, frequency, convention, rule, dayCounter,
+                                     discountCurve, baseTermStructures, recoveryRates, weights)));
+
+    using bootstrap_trait_type = HazardRateAdjuster;
+    using interpolation_type = BackwardFlat;
+    auto piecewiseCurve = PiecewiseDefaultCurve<bootstrap_trait_type, interpolation_type>(
+        today, helpers, Actual365Fixed());
+
+    std::vector<Real> refAdjuster = {0.969957, 0.969957, 0.9992, 1.05534, 1.01184};
+    for (Size k = 0; k < piecewiseCurve.times().size(); ++k) {
+        auto t = piecewiseCurve.times()[k];
+        auto v = piecewiseCurve.data()[k];
+        if (fabs(v - refAdjuster[k]) > 5.0e-6) {
+            BOOST_FAIL("Hazard rate scaling for index " << k << ", time " << t << " is " << v
+                                                        << ", expected " << refAdjuster[k] << ".");
+        }
+    }
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

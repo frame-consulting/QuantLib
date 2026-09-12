@@ -377,4 +377,179 @@ namespace QuantLib {
         return defaultLegNPV / riskyAnnity;
     }
 
+
+    UpfrontCdsIndexHelper::UpfrontCdsIndexHelper(
+        const Handle<Quote>& fairUpfront,
+        const Rate runningSpread,
+        const Period& tenor,
+        Integer settlementDays,
+        const Calendar& calendar,
+        Frequency frequency,
+        BusinessDayConvention paymentConvention,
+        DateGeneration::Rule rule,
+        const DayCounter& dayCounter,
+        const Handle<YieldTermStructure>& discountCurve,
+        const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+        const std::vector<Real>& recoveryRates,
+        const std::vector<Real>& weights,
+        Natural upfrontSettlementDays,
+        bool settlesAccrual,
+        bool paysAtDefaultTime,
+        const Date& startDate,
+        const DayCounter& lastPeriodDayCounter,
+        bool rebatesAccrual,
+        CreditDefaultSwap::PricingModel model)
+        : UpfrontCdsHelper(
+            fairUpfront,
+            runningSpread,
+            tenor,
+            settlementDays,
+            calendar,
+            frequency,
+            paymentConvention,
+            rule,
+            dayCounter,
+            std::accumulate(recoveryRates.begin(), recoveryRates.end(), 0.0) / recoveryRates.size(),  // not used
+            discountCurve,
+            upfrontSettlementDays,
+            settlesAccrual,
+            paysAtDefaultTime,
+            startDate,
+            lastPeriodDayCounter,
+            rebatesAccrual,
+            model
+        ), baseTermStructures_(baseTermStructures), recoveryRates_(recoveryRates),
+        adjustedTermStructures_(baseTermStructures_.size()), swaps_(baseTermStructures_.size()),
+        weights_(weights) {
+        //
+        QL_REQUIRE(baseTermStructures_.size() > 0, "baseTermStructures_.size() > 0 required.");
+        QL_REQUIRE(baseTermStructures_.size() == recoveryRates_.size(),
+                   "baseTermStructures_.size()== recoveryRates_.size() required.");
+        QL_REQUIRE(baseTermStructures_.size() == weights_.size(),
+                   "baseTermStructures_.size()== weights_.size() required.");
+    }
+
+
+    UpfrontCdsIndexHelper::UpfrontCdsIndexHelper(
+        Rate fairUpfront,
+        const Rate runningSpread,
+        const Period& tenor,
+        Integer settlementDays,
+        const Calendar& calendar,
+        Frequency frequency,
+        BusinessDayConvention paymentConvention,
+        DateGeneration::Rule rule,
+        const DayCounter& dayCounter,
+        const Handle<YieldTermStructure>& discountCurve,
+        const std::vector<Handle<DefaultProbabilityTermStructure>>& baseTermStructures,
+        const std::vector<Real>& recoveryRates,
+        const std::vector<Real>& weights,
+        Natural upfrontSettlementDays,
+        bool settlesAccrual,
+        bool paysAtDefaultTime,
+        const Date& startDate,
+        const DayCounter& lastPeriodDayCounter,
+        bool rebatesAccrual,
+        CreditDefaultSwap::PricingModel model)
+    : UpfrontCdsHelper(fairUpfront,
+                       runningSpread,
+                       tenor,
+                       settlementDays,
+                       calendar,
+                       frequency,
+                       paymentConvention,
+                       rule,
+                       dayCounter,
+                       std::accumulate(recoveryRates.begin(), recoveryRates.end(), 0.0) /
+                           recoveryRates.size(), // not used
+                       discountCurve,
+                       upfrontSettlementDays,
+                       settlesAccrual,
+                       paysAtDefaultTime,
+                       startDate,
+                       lastPeriodDayCounter,
+                       rebatesAccrual,
+                       model),
+      baseTermStructures_(baseTermStructures), recoveryRates_(recoveryRates),
+      adjustedTermStructures_(baseTermStructures_.size()), swaps_(baseTermStructures_.size()),
+      weights_(weights) {
+        //
+        QL_REQUIRE(baseTermStructures_.size() > 0, "baseTermStructures_.size() > 0 required.");
+        QL_REQUIRE(baseTermStructures_.size() == recoveryRates_.size(),
+                   "baseTermStructures_.size()== recoveryRates_.size() required.");
+        QL_REQUIRE(baseTermStructures_.size() == weights_.size(),
+                   "baseTermStructures_.size()== weights_.size() required.");
+    }
+
+    void UpfrontCdsIndexHelper::resetEngine() {
+        // we use swap_ as a single representative constituent instrument for inspection purposes,
+        // but it is not used for pricing
+        const double notional = 100.0;
+        const double initialUpfront = 0.01;
+
+        swap_ = ext::make_shared<CreditDefaultSwap>(
+            Protection::Buyer, notional, initialUpfront, runningSpread_, schedule_,
+            paymentConvention_, dayCounter_, settlesAccrual_, paysAtDefaultTime_, protectionStart_, upfrontDate_,
+            ext::shared_ptr<Claim>(), lastPeriodDC_, rebatesAccrual_, evaluationDate_);
+
+
+        for (Size k = 0; k < adjustedTermStructures_.size(); ++k) {
+            // instrument with weight as notional and 100bp spread
+            swaps_[k] = ext::shared_ptr<CreditDefaultSwap>(new CreditDefaultSwap(
+                Protection::Buyer, notional, initialUpfront, runningSpread_, schedule_,
+                paymentConvention_, dayCounter_, settlesAccrual_, paysAtDefaultTime_,
+                protectionStart_, upfrontDate_, ext::shared_ptr<Claim>(), lastPeriodDC_,
+                rebatesAccrual_, evaluationDate_));
+
+            // credit curve with adjustment
+            adjustedTermStructures_[k].linkTo(ext::shared_ptr<DefaultProbabilityTermStructure>(
+                new AdjustedSurvivalProbabilityStructure(baseTermStructures_[k], probability_)));
+
+            // engine with adjusted curve
+            switch (model_) {
+                case CreditDefaultSwap::ISDA:
+                    swaps_[k]->setPricingEngine(ext::make_shared<IsdaCdsEngine>(
+                        adjustedTermStructures_[k], recoveryRates_[k], discountCurve_, false,
+                        IsdaCdsEngine::Taylor, IsdaCdsEngine::HalfDayBias,
+                        IsdaCdsEngine::Piecewise));
+                    break;
+                case CreditDefaultSwap::Midpoint:
+                    swaps_[k]->setPricingEngine(ext::make_shared<MidPointCdsEngine>(
+                        adjustedTermStructures_[k], recoveryRates_[k], discountCurve_));
+                    break;
+                default:
+                    QL_FAIL(
+                        "CDS pricing model must be IsdaCdsEngine or MidPointCdsEngine: " << model_);
+            }
+        }
+    }
+
+    Real UpfrontCdsIndexHelper::impliedQuote() const {
+        for (Size k = 0; k < swaps_.size(); ++k) {
+            swaps_[k]->recalculate();
+        }
+        Date today = discountCurve_->referenceDate();
+        Real couponLegNPV = 0.0;
+        Real accrualRebateNPV = 0.0;
+        Real defaultLegNPV = 0.0;
+        Real fairUpfront = 0.0;
+        Real sumWeights = 0.0;
+        for (Size k = 0; k < swaps_.size(); ++k) {
+            const double alive = baseTermStructures_[k]->survivalProbability(today); // allow for defaulted name curves
+            couponLegNPV += weights_[k] * swaps_[k]->couponLegNPV();
+            accrualRebateNPV += weights_[k] * swaps_[k]->accrualRebateNPV() * alive;
+            defaultLegNPV += weights_[k] * swaps_[k]->defaultLegNPV();
+            fairUpfront += weights_[k] * swaps_[k]->fairUpfront() * alive;
+            sumWeights += weights_[k] * alive;
+        }
+        const Real riskyAnnity = -(couponLegNPV + accrualRebateNPV) / runningSpread_;
+        // save for inspection
+        couponLegNPV_ = couponLegNPV;
+        accrualRebateNPV_ = accrualRebateNPV;
+        defaultLegNPV_ = defaultLegNPV;
+        riskyAnnuity_ = riskyAnnity;
+        //
+        return fairUpfront / sumWeights; // upfronts are quoted per remaining notional
+    }
+
 }
